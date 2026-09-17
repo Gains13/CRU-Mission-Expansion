@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import SignOutButton from '@/components/SignOutButton'
 
 const NAV = [
   { href: '/developer/flags', label: 'Feature flags' },
@@ -31,7 +32,7 @@ export default async function DeveloperLayout({
           <div className="mt-1 font-heading text-lg font-medium">Mission Expansion</div>
         </div>
         <div className="h-px bg-divider" />
-        <nav className="flex flex-col gap-0.5 px-3">
+        <nav className="flex flex-1 flex-col gap-0.5 px-3">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -42,6 +43,9 @@ export default async function DeveloperLayout({
             </Link>
           ))}
         </nav>
+        <div className="px-3">
+          <SignOutButton />
+        </div>
       </aside>
       <main className="p-10">{children}</main>
     </div>
