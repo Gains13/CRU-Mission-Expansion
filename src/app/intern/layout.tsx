@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SignOutButton from '@/components/SignOutButton'
 
+const NAV = [
+  { href: '/intern', label: 'My campuses' },
+  { href: '/intern/campuses', label: 'Campus workspace' },
+]
+
 export default async function InternLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -17,9 +22,15 @@ export default async function InternLayout({ children }: { children: React.React
         </div>
         <div className="h-px bg-divider" />
         <nav className="flex flex-1 flex-col gap-0.5 px-3">
-          <Link href="/intern" className="rounded-r-md border-l-2 border-transparent px-3 py-2 text-sm text-ink hover:border-accent-300">
-            My campuses
-          </Link>
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-r-md border-l-2 border-transparent px-3 py-2 text-sm text-ink hover:border-accent-300"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="px-3"><SignOutButton /></div>
       </aside>

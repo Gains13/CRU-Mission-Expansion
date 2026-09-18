@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Cru Instagram Review Helper",
+  "version": "1.0.0",
+  "description": "Lets the Cru Mission Expansion app move one Instagram tab to the next handle. Never reads or changes Instagram page content.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr4vBktnIhxoZWUPeMHLYqJVG/Wf2YTXG8k0GaSXY6sL05L7bUV4nPV91On2BgcIaCF7G1vs3voncGfBuV3N0T+ilSc56sor3DZSL7huU8scyRKZmkzmL18wLefS8QaMbd001BToGuLkoXAH451gbaQt7erOc++ttMQyO4E6BlafUu8OSNNpeGvadRulNG6+jbsCDTTZsGsyVhrWOYtdo4wnAUibqaclAykhPv1/0uUsDezazDkaJwEFPFk9LCvFxzlDjVMfbl8kQDivVYtQU4hOkBhZp0DJeYUAZZpPJcBVgso0VoidW87tsib7q1y751BuH8h9xdK0GxpxdF8K/eQIDAQAB",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:3000/*"
+    ]
+  }
+}
