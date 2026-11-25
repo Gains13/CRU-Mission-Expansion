@@ -146,9 +146,22 @@ export default function InstagramReviewTool({ campusId }: { campusId: string }) 
         records what you decide.
       </p>
       <p className={`text-xs ${helper ? 'text-accent-800' : 'text-neutral-600'}`}>
-        {helper
-          ? 'Helper extension connected — accounts open in one reused window.'
-          : 'Helper extension not detected — each account will open in a new window. Install the helper (see extension/README.md) and refresh.'}
+        {helper ? (
+          'Helper extension connected — accounts open in one reused window.'
+        ) : (
+          <>
+            Helper extension not detected — each account will open in a new window.{' '}
+            <a
+              href="https://github.com/Gains13/CRU-Mission-Expansion/tree/main/extension#readme"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              Install or update the helper
+            </a>
+            , then refresh this page.
+          </>
+        )}
       </p>
 
       <div className="grid gap-1.5">
