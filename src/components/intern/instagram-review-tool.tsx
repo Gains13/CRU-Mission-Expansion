@@ -48,22 +48,21 @@ export default function InstagramReviewTool({ campusId }: { campusId: string }) 
   const [helper, setHelper] = useState(false)
 
   useEffect(() => {
+    async function loadLog() {
+      const { data } = await supabase
+        .from('instagram_review_log')
+        .select('id, handle, decision, created_at')
+        .eq('campus_id', campusId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      if (data) setLog(data)
+    }
     loadLog()
-  }, [campusId])
+  }, [campusId, supabase])
 
   useEffect(() => {
     pingExtension().then(setHelper)
   }, [])
-
-  async function loadLog() {
-    const { data } = await supabase
-      .from('instagram_review_log')
-      .select('id, handle, decision, created_at')
-      .eq('campus_id', campusId)
-      .order('created_at', { ascending: false })
-      .limit(20)
-    if (data) setLog(data)
-  }
 
   function openHandle(handle: string) {
     const url = `https://www.instagram.com/${handle}/`

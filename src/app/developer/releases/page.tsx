@@ -18,18 +18,16 @@ export default function ReleasesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from('releases')
+        .select('id, version, note, environment, created_at')
+        .order('created_at', { ascending: false })
+      if (data) setReleases(data)
+      setLoading(false)
+    }
     load()
-  }, [])
-
-  async function load() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('releases')
-      .select('id, version, note, environment, created_at')
-      .order('created_at', { ascending: false })
-    if (data) setReleases(data)
-    setLoading(false)
-  }
+  }, [supabase])
 
   function bumpVersion(latest: string | undefined) {
     if (!latest) return 'v0.1.0'

@@ -29,27 +29,25 @@ export default function CampusTasksPanel({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadTasks()
-  }, [campusId])
-
-  async function loadTasks() {
-    setLoading(true)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
+    async function loadTasks() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      const { data } = await supabase
+        .from('goals_tasks')
+        .select('id, title, status, due_date')
+        .eq('campus_id', campusId)
+        .eq('intern_id', user.id)
+        .order('due_date', { ascending: true, nullsFirst: false })
+      if (data) setTasks(data)
       setLoading(false)
-      return
     }
-    const { data } = await supabase
-      .from('goals_tasks')
-      .select('id, title, status, due_date')
-      .eq('campus_id', campusId)
-      .eq('intern_id', user.id)
-      .order('due_date', { ascending: true, nullsFirst: false })
-    if (data) setTasks(data)
-    setLoading(false)
-  }
+    loadTasks()
+  }, [campusId, supabase])
 
   async function saveNotes() {
     setSavingNotes(true)

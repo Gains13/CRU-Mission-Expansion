@@ -37,21 +37,25 @@ export default function InternStudentsPage() {
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [name, setName] = useState('')
 
-  useEffect(() => { loadCampuses() }, [])
-  useEffect(() => { if (active) loadProspects(active) }, [active])
-
-  async function loadCampuses() {
-    const { data } = await supabase.from('campuses').select('id, name, city, state').order('name')
-    if (data) {
-      setCampuses(data)
-      if (data[0]) setActive(data[0].id)
+  useEffect(() => {
+    async function loadCampuses() {
+      const { data } = await supabase.from('campuses').select('id, name, city, state').order('name')
+      if (data) {
+        setCampuses(data)
+        if (data[0]) setActive(data[0].id)
+      }
     }
-  }
+    loadCampuses()
+  }, [supabase])
 
-  async function loadProspects(campusId: string) {
-    const { data } = await supabase.from('prospects').select('*').eq('campus_id', campusId).order('full_name')
-    if (data) setProspects(data)
-  }
+  useEffect(() => {
+    if (!active) return
+    async function loadProspects(campusId: string) {
+      const { data } = await supabase.from('prospects').select('*').eq('campus_id', campusId).order('full_name')
+      if (data) setProspects(data)
+    }
+    loadProspects(active)
+  }, [active, supabase])
 
   async function addProspect() {
     if (!name.trim() || !active) return

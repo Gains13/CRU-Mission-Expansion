@@ -24,18 +24,16 @@ export default function FlagsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from('feature_flags')
+        .select('id, name, description, scope')
+        .order('created_at', { ascending: true })
+      if (data) setFlags(data)
+      setLoading(false)
+    }
     load()
-  }, [])
-
-  async function load() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('feature_flags')
-      .select('id, name, description, scope')
-      .order('created_at', { ascending: true })
-    if (data) setFlags(data)
-    setLoading(false)
-  }
+  }, [supabase])
 
   async function cycleScope(flag: Flag) {
     const next = SCOPE_CYCLE[(SCOPE_CYCLE.indexOf(flag.scope) + 1) % SCOPE_CYCLE.length]

@@ -35,15 +35,13 @@ export default function CampusDetailPage() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from('campuses').select('*').eq('id', id).single()
+      if (data) setCampus(data)
+      setLoading(false)
+    }
     load()
-  }, [id])
-
-  async function load() {
-    setLoading(true)
-    const { data } = await supabase.from('campuses').select('*').eq('id', id).single()
-    if (data) setCampus(data)
-    setLoading(false)
-  }
+  }, [id, supabase])
 
   function update<K extends keyof Campus>(key: K, value: Campus[K]) {
     setCampus((c) => (c ? { ...c, [key]: value } : c))
@@ -52,8 +50,8 @@ export default function CampusDetailPage() {
   async function save() {
     if (!campus) return
     setSaving(true)
-    const { id: _id, ...rest } = campus
-    const { error } = await supabase.from('campuses').update(rest).eq('id', campus.id)
+    const { id: campusId, ...rest } = campus
+    const { error } = await supabase.from('campuses').update(rest).eq('id', campusId)
     setSaving(false)
     if (!error) {
       setSaved(true)
@@ -77,7 +75,7 @@ export default function CampusDetailPage() {
       <input
         type="number"
         value={campus[key]}
-        onChange={(e) => update(key, Number(e.target.value) as any)}
+        onChange={(e) => update(key, Number(e.target.value))}
         className="rounded-md border border-divider bg-transparent px-3 py-2 text-sm focus:border-accent focus:outline-none"
       />
     </label>
@@ -88,7 +86,7 @@ export default function CampusDetailPage() {
       <span className="font-heading text-[11px] uppercase tracking-widest text-neutral-700">{label}</span>
       <input
         value={campus[key] || ''}
-        onChange={(e) => update(key, e.target.value as any)}
+        onChange={(e) => update(key, e.target.value)}
         className="rounded-md border border-divider bg-transparent px-3 py-2 text-sm focus:border-accent focus:outline-none"
       />
     </label>

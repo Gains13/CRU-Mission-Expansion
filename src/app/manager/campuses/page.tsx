@@ -32,20 +32,19 @@ export default function CampusesPage() {
     contact_email: '',
   })
   const [saving, setSaving] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from('campuses')
+        .select('id, name, city, state, instagram_handle, followers_count, surveys_sent')
+        .order('name', { ascending: true })
+      if (data) setCampuses(data)
+      setLoading(false)
+    }
     load()
-  }, [])
-
-  async function load() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('campuses')
-      .select('id, name, city, state, instagram_handle, followers_count, surveys_sent')
-      .order('name', { ascending: true })
-    if (data) setCampuses(data)
-    setLoading(false)
-  }
+  }, [reloadKey, supabase])
 
   async function addCampus() {
     if (!form.name.trim()) return
@@ -78,7 +77,7 @@ export default function CampusesPage() {
         contact_email: '',
       })
       setShowAdd(false)
-      load()
+      setReloadKey((k) => k + 1)
     }
   }
 
@@ -117,7 +116,7 @@ export default function CampusesPage() {
                 {label}
               </span>
               <input
-                value={(form as any)[key]}
+                value={form[key as keyof typeof form]}
                 onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                 className="rounded-md border border-divider bg-transparent px-3 py-2 text-sm focus:border-accent focus:outline-none"
               />

@@ -32,7 +32,7 @@ export default function InternCampusAccountPage() {
       setLoading(false)
     }
     load()
-  }, [id])
+  }, [id, supabase])
 
   if (loading) return <p className="text-sm text-neutral-600">Loading…</p>
   if (!stats) return <p className="text-sm text-neutral-600">Campus not found.</p>

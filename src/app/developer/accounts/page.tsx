@@ -26,16 +26,14 @@ export default function AccountsPage() {
   const [generatedCode, setGeneratedCode] = useState('')
   const [sending, setSending] = useState(false)
 
-  async function loadAccounts() {
-    setLoading(true)
-    const { data, error } = await supabase.rpc('list_accounts')
-    if (!error && data) setAccounts(data)
-    setLoading(false)
-  }
-
   useEffect(() => {
+    async function loadAccounts() {
+      const { data, error } = await supabase.rpc('list_accounts')
+      if (!error && data) setAccounts(data)
+      setLoading(false)
+    }
     loadAccounts()
-  }, [])
+  }, [supabase])
 
   function say(msg: string) {
     setToast(msg)

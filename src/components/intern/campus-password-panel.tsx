@@ -27,19 +27,17 @@ export default function CampusPasswordPanel({
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
+    async function loadPassword() {
+      const { data } = await supabase
+        .from('campus_credentials')
+        .select('password')
+        .eq('campus_id', campusId)
+        .maybeSingle()
+      if (data) setPassword(data.password)
+      setLoading(false)
+    }
     loadPassword()
-  }, [campusId])
-
-  async function loadPassword() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('campus_credentials')
-      .select('password')
-      .eq('campus_id', campusId)
-      .maybeSingle()
-    if (data) setPassword(data.password)
-    setLoading(false)
-  }
+  }, [campusId, supabase])
 
   async function savePassword() {
     setSaving(true)

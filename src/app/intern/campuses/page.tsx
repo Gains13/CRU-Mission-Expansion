@@ -20,18 +20,16 @@ export default function InternCampusesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from('campuses')
+        .select('id, name, city, state, instagram_handle, followers_count, surveys_sent')
+        .order('name')
+      if (data) setCampuses(data)
+      setLoading(false)
+    }
     load()
-  }, [])
-
-  async function load() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('campuses')
-      .select('id, name, city, state, instagram_handle, followers_count, surveys_sent')
-      .order('name')
-    if (data) setCampuses(data)
-    setLoading(false)
-  }
+  }, [supabase])
 
   if (loading) return <p className="text-sm text-neutral-600">Loading…</p>
 

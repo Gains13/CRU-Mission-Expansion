@@ -35,25 +35,23 @@ export default function InternsPage() {
   const [pickCampus, setPickCampus] = useState<Record<string, string>>({})
 
   useEffect(() => {
+    async function load() {
+      const [{ data: accounts }, { data: campusRows }, { data: assignRows }] = await Promise.all([
+        supabase.rpc('list_accounts'),
+        supabase.from('campuses').select('id, name').order('name'),
+        supabase.from('campus_assignments').select('id, campus_id, intern_id'),
+      ])
+      if (accounts) setInterns((accounts as (Intern & { role: string })[]).filter((a) => a.role === 'intern'))
+      if (campusRows) setCampuses(campusRows)
+      if (assignRows) setAssignments(assignRows)
+      setLoading(false)
+    }
     load()
-  }, [])
+  }, [supabase])
 
   function say(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(''), 3000)
-  }
-
-  async function load() {
-    setLoading(true)
-    const [{ data: accounts }, { data: campusRows }, { data: assignRows }] = await Promise.all([
-      supabase.rpc('list_accounts'),
-      supabase.from('campuses').select('id, name').order('name'),
-      supabase.from('campus_assignments').select('id, campus_id, intern_id'),
-    ])
-    if (accounts) setInterns(accounts.filter((a: any) => a.role === 'intern'))
-    if (campusRows) setCampuses(campusRows)
-    if (assignRows) setAssignments(assignRows)
-    setLoading(false)
   }
 
   async function sendInviteEmail() {
