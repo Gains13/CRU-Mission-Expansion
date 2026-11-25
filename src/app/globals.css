@@ -5,6 +5,7 @@
 @theme {
   --font-heading: "Cormorant Garamond", serif;
   --font-body: "Lora", serif;
+  --font-ui: var(--font-geist-sans), system-ui, sans-serif;
 
   --color-page: #f3f2f2;
   --color-surface: #eae9e9;
