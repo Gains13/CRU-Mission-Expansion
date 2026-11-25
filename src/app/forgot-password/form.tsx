@@ -51,7 +51,8 @@ export default function ForgotPasswordForm({ expired }: { expired: boolean }) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {expired ? (
             <div className="rounded-md border border-accent-300 bg-accent-100 px-3 py-2.5 text-sm text-accent-800">
-              That reset link is invalid or has expired. Request a new one below.
+              That reset link is invalid or has expired. Each link works once, and only the most
+              recent one you requested is valid. Request a new one below.
             </div>
           ) : (
             <p className="text-sm text-neutral-800">
