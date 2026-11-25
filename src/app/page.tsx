@@ -2,7 +2,19 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error_code?: string }>
+}) {
+  // Supabase sends failed email links (e.g. an expired reset link) to the
+  // Site URL with the error attached. Explain it instead of showing the
+  // landing page.
+  const { error_code } = await searchParams
+  if (error_code) {
+    redirect(`/forgot-password?expired=1&reason=${encodeURIComponent(error_code.slice(0, 60))}`)
+  }
+
   const supabase = await createClient()
   const {
     data: { user },
