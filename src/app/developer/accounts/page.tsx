@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { passwordResetRedirect } from '@/lib/password-reset'
 
 type Role = 'intern' | 'manager' | 'developer'
 type Account = {
@@ -58,7 +59,7 @@ export default function AccountsPage() {
 
   async function sendReset(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: passwordResetRedirect(),
     })
     say(error ? 'Could not send reset: ' + error.message : `Reset link sent to ${email}`)
   }
