@@ -14,16 +14,20 @@ export async function confirmEmailLink(formData: FormData) {
 
   const supabase = await createClient()
 
-  let ok = false
+  let failure: string | null = 'missing_link_params'
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
-    ok = !error
+    failure = error ? `token_hash: ${error.code ?? error.message}` : null
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    ok = !error
+    failure = error ? `code: ${error.code ?? error.message}` : null
   }
 
-  redirect(ok ? next : '/forgot-password?expired=1')
+  if (failure) {
+    console.error('[auth/confirm] email link rejected:', failure)
+    redirect(`/forgot-password?expired=1&reason=${encodeURIComponent(failure)}`)
+  }
+  redirect(next)
 }
 
 // Only allow same-site paths so a crafted link can't bounce users elsewhere.

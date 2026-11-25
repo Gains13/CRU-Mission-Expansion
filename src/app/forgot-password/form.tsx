@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { passwordResetRedirect } from '@/lib/password-reset'
 import AuthCard from '@/components/AuthCard'
 
-export default function ForgotPasswordForm({ expired }: { expired: boolean }) {
+export default function ForgotPasswordForm({ expired, reason }: { expired: boolean; reason?: string }) {
   const supabase = createClient()
 
   const [email, setEmail] = useState('')
@@ -53,6 +53,7 @@ export default function ForgotPasswordForm({ expired }: { expired: boolean }) {
             <div className="rounded-md border border-accent-300 bg-accent-100 px-3 py-2.5 text-sm text-accent-800">
               That reset link is invalid or has expired. Each link works once, and only the most
               recent one you requested is valid. Request a new one below.
+              {reason && <span className="mt-1.5 block text-xs text-neutral-600">Details: {reason}</span>}
             </div>
           ) : (
             <p className="text-sm text-neutral-800">
