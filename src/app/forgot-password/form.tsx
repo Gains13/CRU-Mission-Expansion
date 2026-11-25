@@ -2,13 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { passwordResetRedirect } from '@/lib/password-reset'
+import { sendPasswordResetEmail } from '@/lib/password-reset'
 import AuthCard from '@/components/AuthCard'
 
 export default function ForgotPasswordForm({ expired, reason }: { expired: boolean; reason?: string }) {
-  const supabase = createClient()
-
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
@@ -19,9 +16,7 @@ export default function ForgotPasswordForm({ expired, reason }: { expired: boole
     setError('')
     setLoading(true)
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: passwordResetRedirect(),
-    })
+    const { error: resetError } = await sendPasswordResetEmail(email.trim())
 
     setLoading(false)
 

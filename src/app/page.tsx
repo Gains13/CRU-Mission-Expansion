@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import EmailLinkForwarder from '@/components/EmailLinkForwarder'
 
 export default async function HomePage({
   searchParams,
@@ -35,6 +36,7 @@ export default async function HomePage({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-7 px-8 text-center">
+      <EmailLinkForwarder />
       <div className="font-heading text-xs uppercase tracking-widest text-accent">
         Mission Expansion
       </div>

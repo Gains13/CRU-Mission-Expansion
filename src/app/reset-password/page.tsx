@@ -7,8 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 import { MIN_PASSWORD_LENGTH } from '@/lib/password-reset'
 import AuthCard from '@/components/AuthCard'
 
-// Reached from /auth/confirm, which has already signed the user in using the
-// link in their reset email. Here they choose the new password.
+// Where reset emails land. The link either carries the recovery session in
+// its #fragment, or came through /auth/confirm, which already signed the user
+// in. Here they choose the new password.
 export default function ResetPasswordPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -21,11 +22,39 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     async function check() {
+      // Reset emails land here with the recovery session (or an error) in
+      // the #fragment. Use it, then strip it from the address bar.
+      const hash = new URLSearchParams(window.location.hash.slice(1))
+      const linkError = hash.get('error_code') ?? hash.get('error')
+      if (linkError) {
+        router.replace(`/forgot-password?expired=1&reason=${encodeURIComponent(linkError.slice(0, 60))}`)
+        return
+      }
+
+      const accessToken = hash.get('access_token')
+      const refreshToken = hash.get('refresh_token')
+      if (accessToken && refreshToken) {
+        window.history.replaceState(null, '', window.location.pathname)
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        if (sessionError) {
+          router.replace(
+            `/forgot-password?expired=1&reason=${encodeURIComponent(sessionError.code ?? 'session_error')}`,
+          )
+          return
+        }
+        setStatus('ready')
+        return
+      }
+
+      // Otherwise they may already be signed in via /auth/confirm.
       const { data } = await supabase.auth.getUser()
       setStatus(data.user ? 'ready' : 'no-session')
     }
     check()
-  }, [supabase])
+  }, [router, supabase])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
