@@ -11,8 +11,9 @@ export default function EmailLinkForwarder() {
     if (!hash) return
     const params = new URLSearchParams(hash.slice(1))
 
-    if (params.get('type') === 'recovery' && params.get('access_token')) {
-      window.location.replace(`/reset-password${hash}`)
+    const type = params.get('type')
+    if ((type === 'recovery' || type === 'invite') && params.get('access_token')) {
+      window.location.replace(`/reset-password${type === 'invite' ? '?welcome=1' : ''}${hash}`)
       return
     }
     const linkError = params.get('error_code') ?? params.get('error')

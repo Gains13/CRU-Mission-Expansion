@@ -37,8 +37,11 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
+  // The invite link signs them in and lands on the page where they set
+  // their first password (session arrives in the link's #fragment).
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { full_name: '', pending_role: role },
+    redirectTo: `${request.nextUrl.origin}/reset-password?welcome=1`,
   })
 
   if (error) {

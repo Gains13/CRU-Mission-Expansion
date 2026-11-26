@@ -7,14 +7,15 @@ import { createClient } from '@/lib/supabase/client'
 import { MIN_PASSWORD_LENGTH } from '@/lib/password-reset'
 import AuthCard from '@/components/AuthCard'
 
-// Where reset emails land. The link either carries the recovery session in
+// Where reset and invite emails land. The link either carries the session in
 // its #fragment, or came through /auth/confirm, which already signed the user
-// in. Here they choose the new password.
+// in. Here they choose a password (a new one, or their first one if invited).
 export default function ResetPasswordPage() {
   const router = useRouter()
   const supabase = createClient()
 
   const [status, setStatus] = useState<'checking' | 'ready' | 'no-session'>('checking')
+  const [welcome, setWelcome] = useState(false)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -25,6 +26,8 @@ export default function ResetPasswordPage() {
       // Reset emails land here with the recovery session (or an error) in
       // the #fragment. Use it, then strip it from the address bar.
       const hash = new URLSearchParams(window.location.hash.slice(1))
+      const query = new URLSearchParams(window.location.search)
+      setWelcome(hash.get('type') === 'invite' || query.get('welcome') === '1')
       const linkError = hash.get('error_code') ?? hash.get('error')
       if (linkError) {
         router.replace(`/forgot-password?expired=1&reason=${encodeURIComponent(linkError.slice(0, 60))}`)
@@ -34,7 +37,7 @@ export default function ResetPasswordPage() {
       const accessToken = hash.get('access_token')
       const refreshToken = hash.get('refresh_token')
       if (accessToken && refreshToken) {
-        window.history.replaceState(null, '', window.location.pathname)
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -86,20 +89,22 @@ export default function ResetPasswordPage() {
     router.replace(profile?.role ? `/${profile.role}` : '/login')
   }
 
+  const title = welcome ? 'Welcome — set your password' : 'Choose a new password'
+
   if (status === 'checking') {
     return (
-      <AuthCard title="Choose a new password">
-        <p className="text-sm text-neutral-600">Checking your reset link…</p>
+      <AuthCard title={title}>
+        <p className="text-sm text-neutral-600">Checking your link…</p>
       </AuthCard>
     )
   }
 
   if (status === 'no-session') {
     return (
-      <AuthCard title="Choose a new password">
+      <AuthCard title={title}>
         <div className="flex flex-col gap-4">
           <p className="text-sm text-neutral-800">
-            This page needs a valid reset link. It may have expired or already been used.
+            This page needs a valid link from your email. It may have expired or already been used.
           </p>
           <Link href="/forgot-password" className="text-sm text-accent-700 underline underline-offset-4">
             Request a new reset link
@@ -113,11 +118,11 @@ export default function ResetPasswordPage() {
     'w-full rounded-md border border-divider bg-transparent px-3 py-2.5 text-sm text-ink caret-accent focus:border-accent focus:outline-none'
 
   return (
-    <AuthCard title="Choose a new password">
+    <AuthCard title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="grid gap-1.5">
           <span className="font-heading text-xs uppercase tracking-widest text-neutral-700">
-            New password
+            {welcome ? 'Password' : 'New password'}
           </span>
           <input
             type="password"
@@ -134,7 +139,7 @@ export default function ResetPasswordPage() {
 
         <label className="grid gap-1.5">
           <span className="font-heading text-xs uppercase tracking-widest text-neutral-700">
-            Confirm new password
+            {welcome ? 'Confirm password' : 'Confirm new password'}
           </span>
           <input
             type="password"
@@ -158,7 +163,7 @@ export default function ResetPasswordPage() {
             disabled={saving}
             className="rounded-md border border-accent px-5 py-2.5 font-heading text-sm font-semibold text-accent-700 hover:bg-accent-100 disabled:opacity-50"
           >
-            {saving ? 'Saving…' : 'Save new password'}
+            {saving ? 'Saving…' : welcome ? 'Save password and continue' : 'Save new password'}
           </button>
         </div>
       </form>
