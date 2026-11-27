@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -35,6 +36,7 @@ export default async function HomePage({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-7 px-8 text-center">
+      <Image src="/cru-logo.png" alt="Cru" width={988} height={606} priority className="h-14 w-auto" />
       <div className="font-heading text-xs uppercase tracking-widest text-accent">
         Mission Expansion
       </div>
