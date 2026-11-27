@@ -16,6 +16,7 @@ export default function ResetPasswordPage() {
 
   const [status, setStatus] = useState<'checking' | 'ready' | 'no-session'>('checking')
   const [welcome, setWelcome] = useState(false)
+  const [firstName, setFirstName] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -38,7 +39,7 @@ export default function ResetPasswordPage() {
       const refreshToken = hash.get('refresh_token')
       if (accessToken && refreshToken) {
         window.history.replaceState(null, '', window.location.pathname + window.location.search)
-        const { error: sessionError } = await supabase.auth.setSession({
+        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         })
@@ -48,12 +49,14 @@ export default function ResetPasswordPage() {
           )
           return
         }
+        setFirstName(firstNameOf(sessionData.user?.user_metadata?.full_name))
         setStatus('ready')
         return
       }
 
       // Otherwise they may already be signed in via /auth/confirm.
       const { data } = await supabase.auth.getUser()
+      setFirstName(firstNameOf(data.user?.user_metadata?.full_name))
       setStatus(data.user ? 'ready' : 'no-session')
     }
     check()
@@ -89,7 +92,9 @@ export default function ResetPasswordPage() {
     router.replace(profile?.role ? `/${profile.role}` : '/login')
   }
 
-  const title = welcome ? 'Welcome — set your password' : 'Choose a new password'
+  const title = welcome
+    ? `Welcome${firstName ? `, ${firstName}` : ''} — set your password`
+    : 'Choose a new password'
 
   if (status === 'checking') {
     return (
@@ -169,4 +174,8 @@ export default function ResetPasswordPage() {
       </form>
     </AuthCard>
   )
+}
+
+function firstNameOf(fullName: unknown) {
+  return typeof fullName === 'string' ? (fullName.trim().split(/s+/)[0] ?? '') : ''
 }

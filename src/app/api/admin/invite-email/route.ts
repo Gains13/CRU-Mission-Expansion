@@ -3,10 +3,14 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
-  const { email, role } = await request.json()
+  const { email, role, fullName: rawName } = await request.json()
+  const fullName = typeof rawName === 'string' ? rawName.trim().slice(0, 100) : ''
 
   if (!email || !role || !['intern', 'manager', 'developer'].includes(role)) {
     return NextResponse.json({ error: 'Invalid email or role' }, { status: 400 })
+  }
+  if (!fullName) {
+    return NextResponse.json({ error: 'Enter their full name' }, { status: 400 })
   }
 
   const supabase = await createServerClient()
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
   // The invite link signs them in and lands on the page where they set
   // their first password (session arrives in the link's #fragment).
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    data: { full_name: '', pending_role: role },
+    data: { full_name: fullName, pending_role: role },
     redirectTo: `${request.nextUrl.origin}/reset-password?welcome=1`,
   })
 
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (data.user) {
-    await admin.from('profiles').update({ role }).eq('id', data.user.id)
+    await admin.from('profiles').update({ role, full_name: fullName }).eq('id', data.user.id)
   }
 
   return NextResponse.json({ success: true })

@@ -23,6 +23,7 @@ export default function AccountsPage() {
   const [toast, setToast] = useState('')
 
   const [inviteRole, setInviteRole] = useState<Role>('intern')
+  const [inviteName, setInviteName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [generatedCode, setGeneratedCode] = useState('')
   const [sending, setSending] = useState(false)
@@ -72,15 +73,15 @@ export default function AccountsPage() {
   }
 
   async function sendInviteEmail() {
-    if (!inviteEmail.trim()) {
-      say('Enter an email first.')
+    if (!inviteName.trim() || !inviteEmail.trim()) {
+      say('Enter their name and email first.')
       return
     }
     setSending(true)
     const res = await fetch('/api/admin/invite-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
+      body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole, fullName: inviteName.trim() }),
     })
     const json = await res.json()
     setSending(false)
@@ -89,7 +90,8 @@ export default function AccountsPage() {
       say('Could not send invite: ' + json.error)
       return
     }
-    say(`Invite email sent to ${inviteEmail}`)
+    say(`Invite email sent to ${inviteName.trim()} (${inviteEmail.trim()})`)
+    setInviteName('')
     setInviteEmail('')
   }
 
@@ -128,6 +130,17 @@ export default function AccountsPage() {
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
+          <div className="grid gap-1.5">
+            <span className="font-heading text-xs uppercase tracking-widest text-neutral-700">
+              Full name
+            </span>
+            <input
+              value={inviteName}
+              onChange={(e) => setInviteName(e.target.value)}
+              placeholder="Jane Smith"
+              className="w-56 rounded-md border border-divider bg-transparent px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
           <div className="grid gap-1.5">
             <span className="font-heading text-xs uppercase tracking-widest text-neutral-700">
               Email (for a real invite email)
