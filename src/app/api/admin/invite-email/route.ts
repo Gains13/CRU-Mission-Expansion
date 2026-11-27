@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { explainEmailError } from '@/lib/auth-errors'
 
 export async function POST(request: NextRequest) {
   const { email, role, fullName: rawName } = await request.json()
@@ -49,7 +50,8 @@ export async function POST(request: NextRequest) {
   })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    console.error('[invite-email] Supabase rejected the invite:', error.code, error.message)
+    return NextResponse.json({ error: explainEmailError(error) }, { status: 400 })
   }
 
   if (data.user) {

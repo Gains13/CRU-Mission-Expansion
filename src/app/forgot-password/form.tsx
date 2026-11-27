@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { sendPasswordResetEmail } from '@/lib/password-reset'
 import AuthCard from '@/components/AuthCard'
+import { explainEmailError, explainLinkError } from '@/lib/auth-errors'
 
 export default function ForgotPasswordForm({ expired, reason }: { expired: boolean; reason?: string }) {
   const [email, setEmail] = useState('')
@@ -21,13 +22,15 @@ export default function ForgotPasswordForm({ expired, reason }: { expired: boole
     setLoading(false)
 
     // Supabase doesn't reveal whether the email has an account, and neither
-    // do we: only rate-limit or network problems surface as errors.
+    // do we: only rate-limit, sending or network problems surface as errors.
     if (resetError) {
-      setError(resetError.message)
+      setError(explainEmailError(resetError))
       return
     }
     setSent(true)
   }
+
+  const linkProblem = expired ? explainLinkError(reason) : null
 
   return (
     <AuthCard title="Reset your password">
@@ -44,11 +47,11 @@ export default function ForgotPasswordForm({ expired, reason }: { expired: boole
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {expired ? (
+          {linkProblem ? (
             <div className="rounded-md border border-accent-300 bg-accent-100 px-3 py-2.5 text-sm text-accent-800">
-              That reset link is invalid or has expired. Each link works once, and only the most
-              recent one you requested is valid. Request a new one below.
-              {reason && <span className="mt-1.5 block text-xs text-neutral-600">Details: {reason}</span>}
+              <span className="block font-semibold">{linkProblem.title}</span>
+              <span className="mt-1 block">{linkProblem.detail}</span>
+              {reason && <span className="mt-1.5 block text-xs text-neutral-600">Error code: {reason}</span>}
             </div>
           ) : (
             <p className="text-sm text-neutral-800">

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { sendPasswordResetEmail } from '@/lib/password-reset'
+import { sendInvite } from '@/lib/send-invite'
+import { explainEmailError } from '@/lib/auth-errors'
 
 type Role = 'intern' | 'manager' | 'developer'
 type Account = {
@@ -39,7 +41,8 @@ export default function AccountsPage() {
 
   function say(msg: string) {
     setToast(msg)
-    setTimeout(() => setToast(''), 3000)
+    // Longer messages (error explanations) stay up long enough to read.
+    setTimeout(() => setToast(''), Math.max(3000, msg.length * 70))
   }
 
   async function cycleRole(account: Account) {
@@ -60,7 +63,7 @@ export default function AccountsPage() {
 
   async function sendReset(email: string) {
     const { error } = await sendPasswordResetEmail(email)
-    say(error ? 'Could not send reset: ' + error.message : `Reset link sent to ${email}`)
+    say(error ? 'Reset not sent. ' + explainEmailError(error) : `Reset link sent to ${email}`)
   }
 
   async function generateCode() {
@@ -78,16 +81,11 @@ export default function AccountsPage() {
       return
     }
     setSending(true)
-    const res = await fetch('/api/admin/invite-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole, fullName: inviteName.trim() }),
-    })
-    const json = await res.json()
+    const result = await sendInvite({ email: inviteEmail.trim(), role: inviteRole, fullName: inviteName.trim() })
     setSending(false)
 
-    if (!res.ok) {
-      say('Could not send invite: ' + json.error)
+    if (!result.ok) {
+      say('Invite not sent. ' + result.error)
       return
     }
     say(`Invite email sent to ${inviteName.trim()} (${inviteEmail.trim()})`)
