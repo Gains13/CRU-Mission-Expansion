@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { readRememberPreference, saveRememberPreference } from '@/lib/remember-me'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,11 +14,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const rememberRef = useRef<HTMLInputElement>(null)
+
+  // Pre-tick the box to match the choice made last time on this browser.
+  useEffect(() => {
+    if (rememberRef.current) rememberRef.current.checked = readRememberPreference()
+  }, [])
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // Must be saved before signing in: the sign-in cookies are written with
+    // (or without) an expiry based on it.
+    saveRememberPreference(rememberRef.current?.checked ?? true)
 
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -93,6 +104,8 @@ export default function LoginPage() {
               </span>
               <input
                 type="email"
+                name="email"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -112,12 +125,30 @@ export default function LoginPage() {
               </span>
               <input
                 type="password"
+                name="password"
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full rounded-md border border-divider bg-transparent px-3 py-2.5 text-sm text-ink caret-accent focus:border-accent focus:outline-none"
               />
+            </label>
+
+            <label className="flex items-start gap-2.5 text-sm text-neutral-800">
+              <input
+                ref={rememberRef}
+                type="checkbox"
+                name="remember"
+                defaultChecked
+                className="mt-0.5 h-4 w-4 accent-accent"
+              />
+              <span>
+                Keep me signed in
+                <span className="block text-xs text-neutral-600">
+                  Untick on a shared or public computer — you&apos;ll be signed out when the browser closes.
+                </span>
+              </span>
             </label>
 
             {error && (

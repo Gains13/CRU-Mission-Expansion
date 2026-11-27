@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { REMEMBER_COOKIE, applyRememberPreference } from '@/lib/remember-me'
 
 const PROTECTED_ROLES = ['intern', 'manager', 'developer'] as const
 type Role = (typeof PROTECTED_ROLES)[number]
@@ -24,10 +25,11 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          const remember = request.cookies.get(REMEMBER_COOKIE)?.value
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, applyRememberPreference(options, remember))
           )
         },
       },
