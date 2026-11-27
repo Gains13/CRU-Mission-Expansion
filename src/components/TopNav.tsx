@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import SignOutButton from '@/components/SignOutButton'
+import IdleSignOut from '@/components/IdleSignOut'
 
 export type NavItem = { href: string; label: string }
 
@@ -27,6 +28,7 @@ export default function TopNav({
 
   return (
     <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
+      <IdleSignOut />
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 rounded-2xl border border-divider/60 bg-white px-4 font-ui shadow-[0_4px_20px_rgba(32,31,29,0.08)] sm:gap-8 sm:px-6">
         <Link href={root} className="flex shrink-0 items-center gap-3" aria-label={`Cru Mission Expansion — ${role}`}>
           <Image src="/cru-logo.png" alt="Cru" width={988} height={606} priority className="h-9 w-auto" />

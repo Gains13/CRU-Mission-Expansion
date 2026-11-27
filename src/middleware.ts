@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { REMEMBER_COOKIE, applyRememberPreference } from '@/lib/remember-me'
+import {
+  LAST_ACTIVE_COOKIE,
+  REMEMBER_COOKIE,
+  applyRememberPreference,
+  isIdleExpired,
+} from '@/lib/remember-me'
 
 const PROTECTED_ROLES = ['intern', 'manager', 'developer'] as const
 type Role = (typeof PROTECTED_ROLES)[number]
@@ -47,6 +52,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Didn't choose "Keep me signed in" and idle past the limit (e.g. reopened
+  // the browser later) — sign out and explain on the login page.
+  const remember = request.cookies.get(REMEMBER_COOKIE)?.value
+  if (isIdleExpired(remember, request.cookies.get(LAST_ACTIVE_COOKIE)?.value)) {
+    await supabase.auth.signOut({ scope: 'local' })
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.search = '?signedOut=idle'
+    const redirect = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+    redirect.cookies.delete(LAST_ACTIVE_COOKIE)
+    return redirect
+  }
+
   // Signed in — check their actual role matches the portal they're trying to reach
   const { data: profile } = await supabase
     .from('profiles')
@@ -61,6 +80,17 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = actualRole ? `/${actualRole}` : '/login'
     return NextResponse.redirect(url)
+  }
+
+  // A real page visit counts as activity; link prefetches don't.
+  const isPrefetch =
+    request.headers.get('next-router-prefetch') !== null || request.headers.get('purpose') === 'prefetch'
+  if (remember === '0' && !isPrefetch) {
+    response.cookies.set(LAST_ACTIVE_COOKIE, String(Date.now()), {
+      path: '/',
+      sameSite: 'lax',
+      secure: request.nextUrl.protocol === 'https:',
+    })
   }
 
   return response

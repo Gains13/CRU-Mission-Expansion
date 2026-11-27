@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { MIN_PASSWORD_LENGTH } from '@/lib/password-reset'
+import { markActive } from '@/lib/remember-me'
 import AuthCard from '@/components/AuthCard'
 
 // Where reset and invite emails land. The link either carries the session in
@@ -89,6 +90,9 @@ export default function ResetPasswordPage() {
       .eq('id', data.user.id)
       .single()
 
+    // Just signed in from the email link: start the activity clock fresh so a
+    // stale timestamp can't trigger the idle sign-out on arrival.
+    markActive()
     router.replace(profile?.role ? `/${profile.role}` : '/login')
   }
 

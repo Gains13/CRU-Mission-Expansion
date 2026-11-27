@@ -24,15 +24,58 @@ export function applyRememberPreference<T extends CookieOpts>(options: T, rememb
   return sessionOnly
 }
 
-// Browser only: records the choice before signing in.
-export function saveRememberPreference(remember: boolean) {
+// ---------------------------------------------------------------------------
+// Idle sign-out for people who chose NOT to stay signed in.
+//
+// Browsers don't reliably clear session cookies on close (Chrome's "Continue
+// where you left off" restores them), so we also enforce an inactivity limit:
+// LAST_ACTIVE_COOKIE holds the last time they used the app, in any tab. The
+// middleware signs them out on the next portal request once it's older than
+// the limit (e.g. after reopening the browser), and IdleSignOut does it in an
+// open tab that's been left alone.
+
+export const LAST_ACTIVE_COOKIE = 'cru-last-active'
+export const IDLE_LIMIT_MS = 10 * 60 * 1000
+
+// A missing timestamp counts as active: if session cookies really were
+// cleared on close, the sign-in is gone anyway.
+export function isIdleExpired(rememberValue: string | undefined, lastActive: string | undefined, now = Date.now()) {
+  if (rememberValue !== '0' || !lastActive) return false
+  const last = Number(lastActive)
+  return !Number.isFinite(last) || now - last > IDLE_LIMIT_MS
+}
+
+export const IDLE_SIGNED_OUT_PATH = '/login?signedOut=idle'
+
+function readCookie(name: string) {
+  return document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`))?.[1]
+}
+
+function writeCookie(name: string, value: string, maxAgeSeconds?: number) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : ''
-  document.cookie = `${REMEMBER_COOKIE}=${remember ? '1' : '0'}; Path=/; Max-Age=${400 * 24 * 60 * 60}; SameSite=Lax${secure}`
+  const maxAge = maxAgeSeconds === undefined ? '' : `; Max-Age=${maxAgeSeconds}`
+  document.cookie = `${name}=${value}; Path=/${maxAge}; SameSite=Lax${secure}`
+}
+
+// Browser only: records the choice before signing in, and starts the
+// activity clock.
+export function saveRememberPreference(remember: boolean) {
+  writeCookie(REMEMBER_COOKIE, remember ? '1' : '0', 400 * 24 * 60 * 60)
+  markActive()
 }
 
 // Browser only: whether the person chose "Keep me signed in" last time
 // (defaults to true).
 export function readRememberPreference() {
-  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${REMEMBER_COOKIE}=([^;]*)`))
-  return match?.[1] !== '0'
+  return readCookie(REMEMBER_COOKIE) !== '0'
+}
+
+// Browser only.
+export function markActive(now = Date.now()) {
+  writeCookie(LAST_ACTIVE_COOKIE, String(now))
+}
+
+// Browser only.
+export function idleExpiredNow() {
+  return isIdleExpired(readCookie(REMEMBER_COOKIE), readCookie(LAST_ACTIVE_COOKIE))
 }
