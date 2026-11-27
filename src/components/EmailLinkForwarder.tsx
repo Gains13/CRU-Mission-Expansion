@@ -2,13 +2,16 @@
 
 import { useEffect } from 'react'
 
-// If Supabase can't use the requested redirect, it sends email links to the
-// Site URL (this home page) with the result in the #fragment, which the
-// server never sees. Forward those to the page that can handle them.
+// Email links can land on the wrong page with the session (or an error) in
+// the #fragment, which the server never sees: Supabase falls back to the Site
+// URL when it can't use the requested redirect, and if the person is already
+// signed in the home page then redirects to their portal (keeping the
+// fragment). Mounted in the root layout so it catches these on any page and
+// forwards them to the page that handles them.
 export default function EmailLinkForwarder() {
   useEffect(() => {
     const hash = window.location.hash
-    if (!hash) return
+    if (!hash || window.location.pathname === '/reset-password') return
     const params = new URLSearchParams(hash.slice(1))
 
     const type = params.get('type')

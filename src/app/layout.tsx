@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import EmailLinkForwarder from "@/components/EmailLinkForwarder";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* Browser extensions (e.g. Grammarly) add attributes to <body> before
           React hydrates; ignore those attribute-only mismatches here. */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <EmailLinkForwarder />
         {children}
       </body>
     </html>

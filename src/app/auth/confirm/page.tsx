@@ -23,10 +23,12 @@ export default async function ConfirmPage({
   if (!(token_hash && type) && !code) redirect('/forgot-password?expired=1')
 
   return (
-    <AuthCard title="Reset your password">
+    <AuthCard title={type === 'invite' ? 'Welcome to Mission Expansion' : 'Reset your password'}>
       <form action={confirmEmailLink} className="flex flex-col gap-4">
         <p className="text-sm text-neutral-800">
-          Continue to choose a new password for your account.
+          {type === 'invite'
+            ? 'Continue to set a password and finish setting up your account.'
+            : 'Continue to choose a new password for your account.'}
         </p>
         <input type="hidden" name="token_hash" value={token_hash ?? ''} />
         <input type="hidden" name="type" value={type ?? ''} />
