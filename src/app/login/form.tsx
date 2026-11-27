@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { readRememberPreference, saveRememberPreference } from '@/lib/remember-me'
+import { IDLE_LIMIT_MINUTES, readRememberPreference, saveRememberPreference } from '@/lib/remember-me'
 
 export default function LoginForm({ signedOutIdle }: { signedOutIdle: boolean }) {
   const router = useRouter()
@@ -100,7 +100,7 @@ export default function LoginForm({ signedOutIdle }: { signedOutIdle: boolean })
           <form onSubmit={handleSignIn} className="flex flex-col gap-4">
             {signedOutIdle && (
               <div className="rounded-md border border-accent-300 bg-accent-100 px-3 py-2.5 text-sm text-accent-800">
-                You were signed out after 10 minutes without activity, because &ldquo;Keep me signed
+                You were signed out after {IDLE_LIMIT_MINUTES} minutes without activity, because &ldquo;Keep me signed
                 in&rdquo; was off. Sign in again to continue.
               </div>
             )}
@@ -153,7 +153,7 @@ export default function LoginForm({ signedOutIdle }: { signedOutIdle: boolean })
               <span>
                 Keep me signed in
                 <span className="block text-xs text-neutral-600">
-                  Untick on a shared or public computer — you&apos;ll be signed out after 10 minutes without activity or when the browser closes.
+                  Untick on a shared or public computer — you&apos;ll be signed out after {IDLE_LIMIT_MINUTES} minutes without activity or when the browser closes.
                 </span>
               </span>
             </label>

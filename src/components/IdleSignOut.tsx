@@ -9,7 +9,7 @@ const RECORD_EVERY_MS = 30 * 1000
 const CHECK_EVERY_MS = 30 * 1000
 
 // Signs out people who chose not to stay signed in once they've been idle
-// for 10 minutes (activity in any tab counts — the timestamp is a shared
+// for IDLE_LIMIT_MINUTES (activity in any tab counts — the timestamp is a shared
 // cookie). Does nothing for people who ticked "Keep me signed in".
 export default function IdleSignOut() {
   useEffect(() => {

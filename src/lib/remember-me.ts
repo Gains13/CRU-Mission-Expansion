@@ -35,7 +35,8 @@ export function applyRememberPreference<T extends CookieOpts>(options: T, rememb
 // open tab that's been left alone.
 
 export const LAST_ACTIVE_COOKIE = 'cru-last-active'
-export const IDLE_LIMIT_MS = 10 * 60 * 1000
+export const IDLE_LIMIT_MINUTES = 30
+export const IDLE_LIMIT_MS = IDLE_LIMIT_MINUTES * 60 * 1000
 
 // A missing timestamp counts as active: if session cookies really were
 // cleared on close, the sign-in is gone anyway.
