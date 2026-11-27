@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { IDLE_LIMIT_MINUTES, readRememberPreference, saveRememberPreference } from '@/lib/remember-me'
 
@@ -60,6 +61,7 @@ export default function LoginForm({ signedOutIdle }: { signedOutIdle: boolean })
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-[1.05fr_1fr]">
       <div className="hidden md:flex flex-col justify-center gap-7 border-r border-divider px-12 py-14">
+        <Image src="/cru-logo.png" alt="Cru" width={988} height={606} priority className="h-12 w-auto self-start" />
         <div className="font-heading text-xs uppercase tracking-widest text-accent">
           Mission Expansion
         </div>
@@ -95,6 +97,8 @@ export default function LoginForm({ signedOutIdle }: { signedOutIdle: boolean })
 
       <div className="flex flex-col justify-center gap-5 px-8 py-14 md:px-12">
         <div className="w-full max-w-md">
+          {/* The left panel (with the logo) is hidden on small screens. */}
+          <Image src="/cru-logo.png" alt="Cru" width={988} height={606} priority className="mb-8 h-10 w-auto md:hidden" />
           <h2 className="mb-4 font-heading text-2xl font-medium">Sign in</h2>
 
           <form onSubmit={handleSignIn} className="flex flex-col gap-4">
