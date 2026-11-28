@@ -4,6 +4,7 @@ import TopNav from '@/components/TopNav'
 
 const NAV = [
   { href: '/manager/campuses', label: 'Campuses' },
+  { href: '/manager/research', label: 'Research' },
   { href: '/manager/interns', label: 'Interns' },
   { href: '/manager/prospects', label: 'Prospects' },
   { href: '/manager/calls', label: 'Info calls' },
