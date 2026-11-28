@@ -61,6 +61,13 @@ export async function POST(request: NextRequest) {
       console.error('[research] Anthropic key rejected')
       return NextResponse.json({ error: 'AI research isn’t set up correctly (the API key was rejected).' }, { status: 503 })
     }
+    if (error instanceof Anthropic.BadRequestError && /credit balance/i.test(error.message)) {
+      console.error('[research] Anthropic account is out of credits')
+      return NextResponse.json(
+        { error: 'AI research is out of credits. Add credits under Plans & Billing in the Anthropic console, then try again.' },
+        { status: 503 },
+      )
+    }
     if (error instanceof Anthropic.RateLimitError) {
       return NextResponse.json({ error: 'Too many research requests right now. Wait a minute and try again.' }, { status: 429 })
     }
