@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import { ResearchError, mergeIntoNotes, reportToNotes, researchCampus } from '@/lib/campus-research'
+import { ResearchError, researchCampus } from '@/lib/campus-research'
+import { serializeResearch } from '@/lib/research-format'
 
 // Research with web search usually takes 1-3 minutes.
 export const maxDuration = 300
@@ -24,11 +25,11 @@ export async function POST(request: NextRequest) {
 
   // Either a campus from the list (results are saved to its notes) or any
   // campus typed in by name (results are shown but not saved).
-  let campus: { id?: string; name: string; city: string | null; state: string | null; research_notes?: string | null }
+  let campus: { id?: string; name: string; city: string | null; state: string | null }
   if (body?.campusId) {
     const { data } = await supabase
       .from('campuses')
-      .select('id, name, city, state, research_notes')
+      .select('id, name, city, state')
       .eq('id', body.campusId)
       .single()
     if (!data) return NextResponse.json({ error: 'That campus wasn’t found.' }, { status: 404 })
@@ -47,8 +48,11 @@ export async function POST(request: NextRequest) {
     const report = await researchCampus(campus)
     let saved = false
     if (campus.id) {
-      const notes = mergeIntoNotes(campus.research_notes ?? null, reportToNotes(report))
-      const { error } = await supabase.from('campuses').update({ research_notes: notes }).eq('id', campus.id)
+      // The full report is kept (latest run replaces the previous one).
+      const { error } = await supabase
+        .from('campuses')
+        .update({ research_notes: serializeResearch(report) })
+        .eq('id', campus.id)
       saved = !error
       if (error) console.error('[research] could not save notes:', error.message)
     }

@@ -1,30 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
+import type { ResearchReport } from '@/lib/research-format'
+
+export type { ResearchReport }
 
 // AI campus research: Claude searches the web and returns a structured report
 // on what matters when planning a Cru launch at a campus.
 // Server-side only (uses ANTHROPIC_API_KEY) — import it from API routes, never
 // from client components.
 
-export type ResearchReport = {
-  campus_name: string
-  summary: string
-  affiliation: {
-    category: 'public' | 'private_secular' | 'religious'
-    denomination: string | null
-    details: string
-  }
-  ministries: { name: string; kind: string; notes: string; url: string | null }[]
-  club_policy: {
-    summary: string
-    requirements: string[]
-    religious_groups: string | null
-    how_to_start_url: string | null
-  }
-  enrollment: string | null
-  other_notes: string[]
-  sources: { title: string; url: string }[]
-  confidence: 'high' | 'medium' | 'low'
-}
 
 const SAVE_TOOL = {
   name: 'save_research',
@@ -156,49 +139,4 @@ export async function researchCampus(campus: { name: string; city?: string | nul
     messages.push({ role: 'user', content: 'Please submit your findings now with save_research.' })
   }
   throw new ResearchError('The research didn’t finish. Try again in a moment.')
-}
-
-// Plain-text version saved into the campus's research notes, so it shows on
-// the campus page and the manager can edit it.
-export const AI_BLOCK_START = '=== AI research'
-export const AI_BLOCK_END = '=== end AI research ==='
-
-export function reportToNotes(r: ResearchReport, date = new Date()) {
-  const affiliation =
-    r.affiliation.category === 'religious'
-      ? `Religious${r.affiliation.denomination ? ` — ${r.affiliation.denomination}` : ''}`
-      : r.affiliation.category === 'public' ? 'Public' : 'Private, not religiously affiliated'
-  const lines = [
-    `${AI_BLOCK_START} (${date.toISOString().slice(0, 10)}, confidence: ${r.confidence}) ===`,
-    r.summary,
-    '',
-    `Affiliation: ${affiliation}. ${r.affiliation.details}`,
-    '',
-    `Ministries found (${r.ministries.length}):`,
-    ...(r.ministries.length ? r.ministries.map((m) => `- ${m.name} (${m.kind})${m.notes ? `: ${m.notes}` : ''}`) : ['- None found']),
-    '',
-    `Starting a club: ${r.club_policy.summary}`,
-    ...r.club_policy.requirements.map((q) => `- ${q}`),
-    ...(r.club_policy.religious_groups ? [`Religious groups: ${r.club_policy.religious_groups}`] : []),
-    ...(r.club_policy.how_to_start_url ? [`How to start: ${r.club_policy.how_to_start_url}`] : []),
-    ...(r.enrollment ? ['', `Enrollment: ${r.enrollment}`] : []),
-    ...(r.other_notes.length ? ['', 'Other notes:', ...r.other_notes.map((n) => `- ${n}`)] : []),
-    '',
-    'Sources:',
-    ...r.sources.map((s) => `- ${s.title}: ${s.url}`),
-    AI_BLOCK_END,
-  ]
-  return lines.join('\n')
-}
-
-// Replaces any earlier AI research block, keeping the manager's own notes.
-export function mergeIntoNotes(existing: string | null, block: string) {
-  const current = existing ?? ''
-  const start = current.indexOf(AI_BLOCK_START)
-  const end = current.indexOf(AI_BLOCK_END)
-  const manual =
-    start >= 0 && end > start
-      ? (current.slice(0, start) + current.slice(end + AI_BLOCK_END.length)).trim()
-      : current.trim()
-  return manual ? `${manual}\n\n${block}` : block
 }

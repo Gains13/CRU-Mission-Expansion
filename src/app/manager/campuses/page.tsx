@@ -10,6 +10,7 @@ type Campus = {
   city: string | null
   state: string | null
   instagram_handle: string | null
+  following_count: number
   followers_count: number
   surveys_sent: number
 }
@@ -38,7 +39,7 @@ export default function CampusesPage() {
     async function load() {
       const { data } = await supabase
         .from('campuses')
-        .select('id, name, city, state, instagram_handle, followers_count, surveys_sent')
+        .select('id, name, city, state, instagram_handle, followers_count, following_count, surveys_sent')
         .order('name', { ascending: true })
       if (data) setCampuses(data)
       setLoading(false)
@@ -139,7 +140,7 @@ export default function CampusesPage() {
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            {['Campus', 'Location', 'Instagram', 'Followers', 'Surveys sent', ''].map((h) => (
+            {['Campus', 'Location', 'Instagram', 'Followers', 'Following', 'Surveys sent', ''].map((h) => (
               <th
                 key={h}
                 className="border-b border-divider pb-2 pr-3 text-left font-heading text-[11px] uppercase tracking-widest text-neutral-700"
@@ -152,7 +153,7 @@ export default function CampusesPage() {
         <tbody>
           {!loading && campuses.length === 0 && (
             <tr>
-              <td colSpan={6} className="py-4 text-neutral-600">
+              <td colSpan={7} className="py-4 text-neutral-600">
                 No campuses yet — add your first one above.
               </td>
             </tr>
@@ -160,16 +161,32 @@ export default function CampusesPage() {
           {campuses.map((c) => (
             <tr key={c.id}>
               <td className="border-b border-divider py-2.5 pr-3 font-heading font-semibold">
-                {c.name}
+                <Link href={`/manager/campuses/${c.id}`} className="hover:underline hover:underline-offset-4">
+                  {c.name}
+                </Link>
               </td>
               <td className="border-b border-divider py-2.5 pr-3 text-neutral-700">
                 {[c.city, c.state].filter(Boolean).join(', ') || '—'}
               </td>
               <td className="border-b border-divider py-2.5 pr-3 text-neutral-700">
-                {c.instagram_handle || '—'}
+                {c.instagram_handle ? (
+                  <a
+                    href={`https://www.instagram.com/${c.instagram_handle.trim().replace(/^@/, '')}/`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-accent-700 underline underline-offset-4"
+                  >
+                    @{c.instagram_handle.trim().replace(/^@/, '')}
+                  </a>
+                ) : (
+                  '—'
+                )}
               </td>
               <td className="border-b border-divider py-2.5 pr-3 tabular-nums">
                 {c.followers_count}
+              </td>
+              <td className="border-b border-divider py-2.5 pr-3 tabular-nums">
+                {c.following_count}
               </td>
               <td className="border-b border-divider py-2.5 pr-3 tabular-nums">
                 {c.surveys_sent}
